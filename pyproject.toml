@@ -1,0 +1,92 @@
+[project]
+authors = [
+    {email = "topfe101@hhu.de", name = "Tobias Pfennig"},
+    {email = "marvin.vanaalst@gmail.com", name = "Marvin van Aalst"},
+    {email = "divadfu@hotmail.com", name="David Fuente Herraiz"},
+]
+classifiers = ["Programming Language :: Python :: 3.11"]
+name = "absorpig"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.12"
+dependencies = [
+    "matplotlib>=3.9.2",
+    "numpy>=2.1.2",
+    "pandas>=2.2.3",
+    "scipy>=1.14.1",
+    "sympy>=1.13.3",
+    "typer>=0.12.5",
+]
+
+[tool.uv]
+package = true
+dev-dependencies = [
+  "ruff>=0.7.0",
+  "pytest >=8.1.1,<9",
+  "jupyter>=1.1.1",
+  "jupyter-contrib-nbextensions>=0.7.0",
+  "mkdocs>=1.6.1",
+  "mkdocs-jupyter>=0.25.1",
+  "mkdocs-material>=9.5.42",
+  "pytest-cov>=5.0.0",
+  "toml-sort>=0.23.1",
+  "absorpig",
+  "tabulate>=0.9.0",
+]
+
+[tool.uv.sources]
+absorpig = { workspace = true }
+
+[project.urls]
+Changelog = "https://gitlab.com/marvin.vanaalst/absorpig/changelog.rst"
+Documentation = "https://absorpig.gitlab.io/mkdocs/"
+Homepage = "https://gitlab.com/marvin.vanaalst/absorpig"
+Issues = "https://gitlab.com/marvin.vanaalst/absorpig/-/issues"
+Repository = "https://gitlab.com/marvin.vanaalst/absorpig.git"
+
+
+[project.scripts]
+absorpig = "absorpig.__main__:app"
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[tool.ruff]
+indent-width = 4
+line-length = 88
+
+[tool.ruff.lint]
+fixable = ["ALL"]
+ignore = [
+  "ANN101",
+  "ANN401",
+  "COM812",
+  "D",
+  "E501",
+  "FIX001",
+  "ISC001",
+  "N806",
+  "PGH003",
+  "S110",
+  "S301",
+  "TD001",
+  "TD002",
+  "TD003",
+  "UP040", # type keyword
+]
+select = ["ALL"]
+unfixable = []
+
+[tool.ruff.lint.per-file-ignores]
+"*.ipynb" = ["T201"]
+"tests/*" = [
+  "S101",  # assert
+  "PD901",  # df name
+]
+
+[tool.tomlsort]
+spaces_before_inline_comment = 2
+spaces_indent_inline_array = 2
+trailing_comma_inline_array = true

@@ -1,0 +1,5 @@
+.venv
+dist
+.pixi
+*.egg-info
+__pycache__
