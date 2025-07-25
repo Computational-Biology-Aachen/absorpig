@@ -69,6 +69,10 @@ def fit_pigments_to_spectrum(
     pigment_spectra: pd.DataFrame,
     concentration_guess: pd.Series,
 ) -> OptimizeResult:
+
+    # Subset the concentration guess if fewer spectra are given
+    concentration_guess = concentration_guess.loc[pigment_spectra.columns]
+
     bounds = [(0, None) for i in concentration_guess]
 
     return minimize(
