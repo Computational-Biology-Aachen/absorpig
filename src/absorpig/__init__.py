@@ -336,6 +336,8 @@ def routine(
     chl_concentration: float,
     mean_diameter: float,
     pigment_spectrum: pd.DataFrame | None = None,
+    shift_values: pd.Series | None = None,
+    concentration_guess: pd.Series | None = None,
     *,
     shift_spectra: bool = True,
 ) -> Results:
@@ -346,25 +348,14 @@ def routine(
         )
 
     if shift_spectra:
+        if shift_values is None:
+            shift_values = pd.read_csv(
+                files.default_pigment_shifts,
+                index_col=0,
+            ).iloc[:,0]
         pigment_spectrum = pigment_shift(
             pigment_spectra=pigment_spectrum,
-            shift_values=pd.Series(
-                {
-                    "Chla": 0,
-                    "PC": -3,
-                    "APC": -3,
-                    "B-car": -4,
-                    "Zea": 3,
-                    "Ech": 3,
-                    "Myx": 0,
-                    "HEch": 1,
-                    "P698": 2,
-                    "P702": 0,
-                    "P680": 0,
-                    "P686": 0,
-                    "Pheo": 0,
-                },
-            ),
+            shift_values=shift_values,
         )
 
     cell = make_cell(
@@ -389,26 +380,18 @@ def routine(
     to_fit = (spectra / cell.chl_concentration_g_per_liter).loc[
         cell.absorption_spectrum.index
     ]
+
+    # Get the guess for the pigment concentrations if none is given
+    if concentration_guess is None:
+        concentration_guess = pd.read_csv(
+            files.default_pigment_guess,
+            index_col=0,
+        ).iloc[:,0]
+
     res = fit_pigments_to_spectrum(
         cell_spectrum=cell.absorption_spectrum,
         pigment_spectra=to_fit,
-        concentration_guess=pd.Series(
-            {
-                "Chla": 1800.000000,
-                "PC": 350.000000,
-                "APC": 112.500000,
-                "B-car": 435.000000,
-                "Zea": 360.000000,
-                "Ech": 150.000000,
-                "Myx": 195.000000,
-                "HEch": 60.000000,
-                "P698": 27.480916,
-                "P702": 54.961832,
-                "P680": 27.480916,
-                "P686": 27.480916,
-                "Pheo": 27.480916,
-            }
-        ),
+        concentration_guess=concentration_guess
     )
 
     return Results(
