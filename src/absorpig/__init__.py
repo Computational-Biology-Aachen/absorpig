@@ -36,6 +36,36 @@ def pigment_shift(
 
     return pd.concat(Pigm_shift, axis=1)
 
+# Linear spaced wavelength shift
+def pigment_shift_linear_uni(
+    pigment_spectra: pd.DataFrame,
+    shift_start:float=8,
+    shift_end:float=18,
+) -> pd.DataFrame:
+    # Set the wavelengths to be interpolated
+    target_wls = np.arange(400,701)
+
+    # Create the container for the shifted pigments
+    Pigm_shift = pigment_spectra.copy()
+
+    # Get the wavelengths by linearly spaced values
+    Pigm_shift.index = Pigm_shift.index + np.linspace(shift_start,shift_end,len(Pigm_shift.index))
+
+    # Add the missing wavelengths to the dataframe
+    missing_wls = np.array(list(set(target_wls).difference(Pigm_shift.index)))
+    Pigm_shift = pd.concat([
+        Pigm_shift,
+        pd.DataFrame(
+            index=missing_wls,
+            columns=Pigm_shift.columns,
+            dtype=float
+        )
+    ], axis=0).sort_index()
+
+    # Interpolate the values
+    Pigm_shift = Pigm_shift.interpolate(method="index")
+
+    return Pigm_shift.loc[target_wls]
 
 def _get_spectrum_residuals(
     cell_spectrum: AbsorptionSpectrum,
@@ -336,7 +366,10 @@ def routine(
     chl_concentration: float,
     mean_diameter: float,
     pigment_spectrum: pd.DataFrame | None = None,
+    shift_method="linear uni",
     shift_values: pd.Series | None = None,
+    shift_start: float = 8,
+    shift_end: float = 18,
     concentration_guess: pd.Series | None = None,
     *,
     shift_spectra: bool = True,
@@ -348,15 +381,23 @@ def routine(
         )
 
     if shift_spectra:
-        if shift_values is None:
-            shift_values = pd.read_csv(
-                files.default_pigment_shifts,
-                index_col=0,
-            ).iloc[:,0]
-        pigment_spectrum = pigment_shift(
-            pigment_spectra=pigment_spectrum,
-            shift_values=shift_values,
-        )
+        # Shift the total spectrum by a single value
+        if shift_method == "total":
+            if shift_values is None:
+                shift_values = pd.read_csv(
+                    files.default_pigment_shifts,
+                    index_col=0,
+                ).iloc[:,0]
+            pigment_spectrum = pigment_shift(
+                pigment_spectra=pigment_spectrum,
+                shift_values=shift_values,
+            )
+        elif shift_method == "linear uni":
+            pigment_spectrum = pigment_shift_linear_uni(
+                pigment_spectra=pigment_spectrum,
+                shift_start=shift_start,
+                shift_end=shift_end,
+            )
 
     cell = make_cell(
         UserInput(
