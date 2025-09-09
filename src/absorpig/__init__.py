@@ -67,6 +67,43 @@ def pigment_shift_linear_uni(
 
     return Pigm_shift.loc[target_wls]
 
+def _pigment_shift_linear_single(
+    pigment_spectrum: pd.Series,
+    shift_offset:float=8,
+    shift_end:float=10,
+) -> pd.Series:
+    # Set the wavelengths to be interpolated
+    target_wls = np.arange(400,701)
+
+    # Get the wavelengths by linearly spaced values
+    shifted_wls = pigment_spectrum.index + np.linspace(0,shift_end,len(pigment_spectrum.index)) + shift_offset
+
+    # Interpolate the absorption at the wavelengths
+    target_values = np.interp(
+        x=target_wls,
+        xp=shifted_wls,
+        fp=pigment_spectrum.to_numpy()
+    )
+
+    return pd.Series(target_values, index=target_wls)
+
+def pigment_shift_linear_individual(
+    pigment_spectra: pd.DataFrame,
+    shift_offset: pd.Series,
+    shift_end: pd.Series,
+) -> pd.DataFrame:
+    # Apply individual shift for each pigment
+    Pigm_shift = {}
+    for pigm, wl in pigment_spectra.T.iterrows():
+        shifted = _pigment_shift_linear_single(
+            pigment_spectrum=wl,
+            shift_end=shift_end[pigm],
+            shift_offset=shift_offset[pigm],
+        )
+        Pigm_shift[pigm] = shifted
+
+    return pd.concat(Pigm_shift, axis=1)
+
 def _get_spectrum_residuals(
     cell_spectrum: AbsorptionSpectrum,
     pigment_spectrum: Array,
@@ -366,10 +403,10 @@ def routine(
     chl_concentration: float,
     mean_diameter: float,
     pigment_spectrum: pd.DataFrame | None = None,
-    shift_method="linear uni",
+    shift_method:str="linear uni",
     shift_values: pd.Series | None = None,
-    shift_start: float = 8,
-    shift_end: float = 18,
+    shift_offset: float|pd.Series | None = None,
+    shift_end: float|pd.Series | None = None,
     concentration_guess: pd.Series | None = None,
     *,
     shift_spectra: bool = True,
@@ -387,7 +424,7 @@ def routine(
                 shift_values = pd.read_csv(
                     files.default_pigment_shifts,
                     index_col=0,
-                ).iloc[:,0]
+                ).loc[:,"shift_total"]
             pigment_spectrum = pigment_shift(
                 pigment_spectra=pigment_spectrum,
                 shift_values=shift_values,
@@ -395,9 +432,28 @@ def routine(
         elif shift_method == "linear uni":
             pigment_spectrum = pigment_shift_linear_uni(
                 pigment_spectra=pigment_spectrum,
-                shift_start=shift_start,
-                shift_end=shift_end,
+                shift_start=shift_offset,
+                shift_end=shift_end+shift_offset,
             )
+        elif shift_method == "linear individual":
+            if shift_offset is None:
+                shift_offset = pd.read_csv(
+                    files.default_pigment_shifts,
+                    index_col=0,
+                ).loc[:,"shift_offset"]
+            if shift_end is None:
+                shift_end = pd.read_csv(
+                    files.default_pigment_shifts,
+                    index_col=0,
+                ).loc[:,"shift_end"]
+            pigment_spectrum = pigment_shift_linear_individual(
+                pigment_spectra=pigment_spectrum,
+                shift_offset=shift_offset,
+                shift_end=shift_end
+            )
+        else:
+            error_message=f"unknown input for 'shift_method': {shift_method}"
+            raise ValueError(error_message)
 
     cell = make_cell(
         UserInput(
