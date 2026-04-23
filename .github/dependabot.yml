@@ -1,0 +1,17 @@
+version: 2
+
+updates:
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "09:00"
+    assignees:
+      - "marvinvanaalst"
+    commit-message:
+      prefix: "build(deps): "
+    groups:
+      dependencies:
+        patterns:
+          - "*"
