@@ -17,7 +17,7 @@ dependencies = [
     "pandas>=2.2.3",
     "scipy>=1.14.1",
     "sympy>=1.13.3",
-    "typer>=0.25.0",
+    "typer>=0.25.1",
 ]
 
 [tool.uv]
