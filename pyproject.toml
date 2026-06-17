@@ -12,7 +12,7 @@ readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.12"
 dependencies = [
-    "matplotlib>=3.10.9",
+    "matplotlib>=3.11.0",
     "numpy>=2.4.6",
     "pandas>=2.2.3",
     "scipy>=1.14.1",
