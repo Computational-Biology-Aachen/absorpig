@@ -1,3 +1,5 @@
+# Copyright 2025 Marvin van Aalst, Anna Matuszyńska
+
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 

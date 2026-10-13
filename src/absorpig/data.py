@@ -1,3 +1,5 @@
+# Copyright 2025 Marvin van Aalst, Anna Matuszyńska
+
 from dataclasses import dataclass
 
 import pandas as pd
